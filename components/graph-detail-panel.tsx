@@ -279,7 +279,6 @@ export function GraphDetailPanel({
         {/* Annotation — double-click to edit */}
         {(block.annotation || editingAnnotation) && (
           <div className="px-4 pb-3 space-y-1.5">
-            <p className="font-mono text-[8px] uppercase tracking-widest text-muted-foreground/40">AI Annotation</p>
             {editingAnnotation ? (
               <textarea
                 ref={annotationRef}
@@ -315,7 +314,6 @@ export function GraphDetailPanel({
         {block.sources && block.sources.length > 0 && (
           <div className="px-4 pb-3 space-y-1.5">
             <div className="h-px bg-border/40 mb-3" />
-            <p className="font-mono text-[8px] uppercase tracking-widest text-muted-foreground/40">Sources</p>
             <div className="space-y-1">
               {block.sources.map((src, i) => (
                 <a
@@ -337,9 +335,6 @@ export function GraphDetailPanel({
         {connectedBlocks.length > 0 && (
           <div className="px-4 pb-4 space-y-1.5">
             <div className="h-px bg-border/40 mb-3" />
-            <p className="font-mono text-[8px] uppercase tracking-widest text-muted-foreground/40">
-              Connected · {connectedBlocks.length}
-            </p>
             <div className="space-y-1">
               {connectedBlocks.map(b => {
                 const bConfig = CONTENT_TYPE_CONFIG[b.contentType]
