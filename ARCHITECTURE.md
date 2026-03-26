@@ -34,6 +34,8 @@ The synthesis note (if present) has the highest connection degree and naturally 
 
 **Interaction**: click a node to open a full detail panel (30% of canvas width) showing the same fields as a tile card — editable text, editable annotation, editable category, confidence bar, sources, and a connected-nodes list. Hover a node to dim the unrelated graph. The canvas index (⌘I) also drives graph highlighting — hovering a title in the index highlights the corresponding node.
 
+**Selection & dimming**: `focalId = hoveredId ?? selectedId ?? highlightedBlockId`. Selecting a node keeps its connections lit even after the cursor moves away. Clicking the SVG background deselects (a `didPan` ref prevents pan gestures from accidentally deselecting). `Escape` clears selection from anywhere. Simulation is only kicked (`alphaTarget(0.3)`) on actual drag movement, not on mousedown, so clicking a node doesn't jolt the graph.
+
 **What this gives the user**: a spatial perspective focused entirely on relationships, making it easy to see which notes are hubs and which are isolated observations.
 
 ### 3. AI Enrichment — Automatic Classification
@@ -154,7 +156,7 @@ AI annotations are written in Markdown and can contain inline links (e.g. `[Sour
 | `⌘I` | Toggle canvas index |
 | `⌘G` | Toggle synthesis panel |
 | `Enter` | Submit a new note |
-| `Esc` | Close command menu |
+| `Esc` | Close command menu / deselect graph node |
 
 ---
 
@@ -167,7 +169,7 @@ AI annotations are written in Markdown and can contain inline links (e.g. `[Sour
 | Framework | Next.js 16.1.6, App Router |
 | UI | React 19, TypeScript 5.7, `"use client"` throughout |
 | Styling | Tailwind CSS v4, oklch colour space, CSS variables for type colours |
-| Components | shadcn/ui (Radix UI primitives) |
+| Components | `sheet.tsx` only — one shadcn/ui primitive (Radix Sheet). All other shadcn scaffolding removed. |
 | Animations | Framer Motion 11 |
 | Icons | Lucide React |
 | Graph | D3.js (`d3-force`, `d3-zoom`) — Graph View simulation |
@@ -175,7 +177,7 @@ AI annotations are written in Markdown and can contain inline links (e.g. `[Sour
 | Markdown render | `react-markdown` + `remark-gfm` |
 | AI API | OpenRouter (user's own key, forwarded via `x-or-key` header) |
 | Analytics | `@vercel/analytics` |
-| Fonts | Geist + Geist Mono, Vazirmatn (RTL) |
+| Fonts | Geist + Geist Mono, Vazirmatn (RTL, via `next/font/google` → `--font-vazirmatn` CSS variable) |
 
 ### State Architecture
 
@@ -229,6 +231,7 @@ isCommandKOpen: boolean                // ephemeral
 - Context passed as XML: `<note index="N" category="X">text</note>` — limits prompt injection blast radius to wrong classification only
 - OpenRouter called with `json_schema` + `strict: true` structured output
 - `:online` suffix appended automatically for truth-dependent types when `x-or-supports-grounding: true`
+- **Language isolation**: `detectScript(text)` detects script via Unicode ranges (Arabic, Hebrew, CJK, Cyrillic, Devanagari; Latin-script deferred to model). Injects `[RESPOND IN: X]` directive directly before `<note_to_enrich>` so context notes in a different language cannot bleed into the response language.
 
 In `app/page.tsx`:
 - `enrichBlock(id, text, forcedType?)` — fires after `addBlock()` and after debounced edits (800ms)
@@ -350,7 +353,8 @@ components/
   status-bar.tsx            Top bar: all status indicators + panel toggles
   vim-input.tsx             Bottom input + ⌘K command grid (Views/Nav/Actions)
   about-panel.tsx           Full-height right Sheet: app guide
-  ui/                       shadcn/ui primitives (Radix-backed)
+  ui/
+    sheet.tsx               Only remaining shadcn/ui primitive (Radix Sheet, used by about-panel)
 
 lib/
   content-types.ts          14 ContentType definitions + CONTENT_TYPE_CONFIG

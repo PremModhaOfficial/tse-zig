@@ -21,14 +21,14 @@ The OpenRouter API key is entered by the user in the app's Settings panel (insid
 
 - **Framework**: Next.js 16.1.6, React 19, TypeScript 5.7 (App Router, `"use client"` throughout)
 - **Styling**: Tailwind CSS v4, `tw-animate-css`, `@tailwindcss/typography`
-- **UI primitives**: shadcn/ui (components in `components/ui/`) backed by Radix UI
+- **UI primitives**: one shadcn/ui component in use — `components/ui/sheet.tsx` (Radix UI Sheet, powers the About panel). All other shadcn scaffolding was removed.
 - **Animations**: Framer Motion 11
 - **Icons**: Lucide React
 - **Graph**: D3.js (`d3-force`, `d3-zoom`) — used in Graph View
 - **Markdown**: `react-markdown` + `remark-gfm`
 - **Command palette**: `cmdk` 1.1
 - **Analytics**: `@vercel/analytics` (injected in `app/layout.tsx`)
-- **Fonts**: Geist + Geist Mono (layout), Vazirmatn (RTL, via CSS `@import`)
+- **Fonts**: Geist + Geist Mono (layout), Vazirmatn (RTL, loaded via `next/font/google` with `--font-vazirmatn` CSS variable, applied via `.rtl-text` class)
 
 ## Architecture
 
@@ -69,11 +69,17 @@ Project {
   name: string
   blocks: TextBlock[]
   collapsedIds: string[]         // unused in tiling view (collapse removed); kept for kanban
-  ghostNote?: { id: string; text: string; category: string; isGenerating: boolean }
-  ghostNoteDismissed?: boolean
+  ghostNotes: GhostNote[]        // history of synthesis notes, capped at 5
   lastGhostBlockCount?: number
   lastGhostTimestamp?: number
   lastGhostTexts?: string[]      // last 10 synthesis texts, for near-duplicate avoidance
+}
+
+GhostNote {
+  id: string
+  text: string
+  category: string
+  isGenerating: boolean
 }
 
 TextBlock {
@@ -144,6 +150,7 @@ Available models: Claude Sonnet 4.5, GPT-4o (default), Gemini 2.5 Pro, DeepSeek 
 - Runs heuristic detection locally, then calls OpenRouter with `json_schema` structured output (`temperature: 0.1`, `strict: true`)
 - Context items wrapped in XML delimiters: `<note index="N" category="X">...</note>` — prompt injection mitigation
 - Auto-appends `:online` for truth-dependent types (claim, question, entity, quote, reference, definition, narrative) when grounding is supported
+- **Language isolation**: `detectScript(text)` checks Unicode character ranges server-side (Arabic U+0600–U+06FF, Hebrew, CJK, Cyrillic, Devanagari; Latin-script falls through to model detection). A `[RESPOND IN: X]` directive is injected immediately before `<note_to_enrich>` so the model cannot be swayed by the language of context notes from a previous session.
 - Returns: `{ contentType, category, annotation, confidence, influencedByIndices, isUnrelated, mergeWithIndex }`
 
 ### `POST /api/ghost`
@@ -182,6 +189,8 @@ D3 force-directed graph. **Centrality-radial layout**: `d3.forceRadial` targets 
 
 **Feature parity**: the `GraphDetailPanel` side panel supports editing text, annotation, and category (click category badge → triggers re-enrichment). Connection dimming on hover. `highlightedBlockId` from `TileIndex` hover also highlights the matching graph node.
 
+**Selection**: clicking a node opens the detail panel and locks dimming to that node's connections (`focalId = hoveredId ?? selectedId ?? highlightedBlockId`). Click SVG background to deselect (pan gestures are excluded via `didPan` ref). Press `Escape` to deselect from anywhere.
+
 **Pinning is tiling-only** — the pin visual treatment (`isPinned` gradient) is only surfaced in tile cards, not in kanban or graph.
 
 ## Key Components (`components/`)
@@ -205,7 +214,7 @@ D3 force-directed graph. **Centrality-radial layout**: `d3.forceRadial` targets 
 
 ## UI Patterns
 
-- **shadcn/ui** — prefer extending existing components over adding new primitives.
+- **UI primitives**: only `components/ui/sheet.tsx` (Radix Sheet) remains from the original shadcn scaffold. Build bespoke rather than adding new shadcn components.
 - **Styling**: Tailwind CSS v4 with `cn()` from `lib/utils.ts`. Dark-first design using oklch color space. Custom scrollbar styles and `shimmer-text` animation for enriching state.
 - **RTL**: Auto-applied `.rtl-text` class when Arabic/Hebrew characters detected in a block.
 - **Animations**: Framer Motion for tile/panel transitions.
