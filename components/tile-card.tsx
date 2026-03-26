@@ -696,6 +696,39 @@ export const TileCard = memo(function TileCard({
   )
 })
 
+// Finds bare https?:// URLs in plain text and returns React nodes with
+// clickable <a> links mixed into the surrounding text.
+function linkifyText(text: string): React.ReactNode {
+  const URL_RE = /https?:\/\/[^\s<>"{}|\\^`[\]]+/g
+  const parts: React.ReactNode[] = []
+  let last = 0
+  let m: RegExpExecArray | null
+  while ((m = URL_RE.exec(text)) !== null) {
+    if (m.index > last) parts.push(text.slice(last, m.index))
+    // Strip trailing punctuation that's unlikely part of the URL
+    const raw = m[0].replace(/[.,;:!?)>\]]+$/, "")
+    let domain = raw
+    try { domain = new URL(raw).hostname.replace("www.", "") } catch {}
+    parts.push(
+      <a
+        key={m.index}
+        href={raw}
+        target="_blank"
+        rel="noopener noreferrer"
+        onClick={e => e.stopPropagation()}
+        onDoubleClick={e => e.stopPropagation()}
+        className="inline-flex items-center gap-0.5 text-primary underline-offset-2 hover:underline"
+      >
+        <LinkIcon className="h-2.5 w-2.5 shrink-0" />
+        {domain}
+      </a>
+    )
+    last = m.index + m[0].length
+  }
+  if (last < text.length) parts.push(text.slice(last))
+  return parts.length === 0 ? text : parts
+}
+
 function renderBody(
   text: string,
   bodyStyle: string | undefined,
@@ -709,20 +742,20 @@ function renderBody(
           style={{ borderLeft: `2px solid ${accent}`, opacity: 0.9 }}
         >
           <p className="text-base italic leading-relaxed text-foreground">
-            {text}
+            {linkifyText(text)}
           </p>
         </div>
       )
     case "italic":
       return (
         <p className="text-base italic font-bold leading-relaxed text-foreground">
-          {text}
+          {linkifyText(text)}
         </p>
       )
     case "muted-italic":
       return (
         <p className="text-base italic font-bold leading-relaxed text-muted-foreground">
-          {text}
+          {linkifyText(text)}
         </p>
       )
     case "checkbox": {
@@ -746,7 +779,7 @@ function renderBody(
               opacity: isDone ? 0.6 : 1,
             }}
           >
-            {displayText}
+            {linkifyText(displayText)}
           </p>
         </div>
       )
@@ -755,7 +788,7 @@ function renderBody(
       return (
         <div className="flex flex-col gap-4">
           <p className="text-lg font-medium leading-relaxed tracking-tight text-foreground prose-invert">
-            {text}
+            {linkifyText(text)}
           </p>
           <div className="h-px w-full bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
         </div>
@@ -763,7 +796,7 @@ function renderBody(
     default:
       return (
         <p className="text-base font-bold leading-relaxed text-foreground">
-          {text}
+          {linkifyText(text)}
         </p>
       )
   }

@@ -3,7 +3,36 @@
 import * as React from "react"
 import { CONTENT_TYPE_CONFIG } from "@/lib/content-types"
 import type { TextBlock } from "@/components/tile-card"
-import { ExternalLink, Pin, RefreshCw, X } from "lucide-react"
+import { ExternalLink, Link as LinkIcon, Pin, RefreshCw, X } from "lucide-react"
+
+// Inline URL linkifier — identical logic to tile-card.tsx
+function linkifyText(text: string): React.ReactNode {
+  const URL_RE = /https?:\/\/[^\s<>"{}|\\^`[\]]+/g
+  const parts: React.ReactNode[] = []
+  let last = 0
+  let m: RegExpExecArray | null
+  while ((m = URL_RE.exec(text)) !== null) {
+    if (m.index > last) parts.push(text.slice(last, m.index))
+    const raw = m[0].replace(/[.,;:!?)>\]]+$/, "")
+    let domain = raw
+    try { domain = new URL(raw).hostname.replace("www.", "") } catch {}
+    parts.push(
+      <a
+        key={m.index}
+        href={raw}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="inline-flex items-center gap-0.5 text-primary underline-offset-2 hover:underline"
+      >
+        <LinkIcon className="h-2.5 w-2.5 shrink-0" />
+        {domain}
+      </a>
+    )
+    last = m.index + m[0].length
+  }
+  if (last < text.length) parts.push(text.slice(last))
+  return parts.length === 0 ? text : parts
+}
 
 interface GraphDetailPanelProps {
   block: TextBlock | null
@@ -209,7 +238,7 @@ export function GraphDetailPanel({
               onDoubleClick={() => { setDraftText(block.text); setEditingText(true) }}
               title="Double-click to edit"
             >
-              {block.text}
+              {linkifyText(block.text)}
             </p>
           )}
         </div>
