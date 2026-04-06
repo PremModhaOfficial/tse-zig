@@ -24,6 +24,7 @@ import {
   getModelsForProvider,
   getPreset,
   type AISettings,
+  type AIProvider,
 } from "@/lib/ai-settings"
 
 interface Project {
@@ -107,7 +108,12 @@ export function ProjectSidebar({
   }
 
   const handleSaveSettings = () => {
-    onUpdateAISettings(draft)
+    // Persist this provider's key so switching back restores it
+    const providerKeys: Partial<Record<AIProvider, string>> = {
+      ...(draft.providerKeys ?? {}),
+      [draft.provider]: draft.apiKey,
+    }
+    onUpdateAISettings({ ...draft, providerKeys })
     setShowSettings(false)
   }
 
@@ -309,6 +315,9 @@ export function ProjectSidebar({
                                   modelId: newModels[0]?.id ?? d.modelId,
                                   webGrounding: d.webGrounding,
                                   customBaseUrl: "",
+                                  // Restore the saved key for this provider if one exists,
+                                  // otherwise clear so the user knows to enter a new one.
+                                  apiKey: d.providerKeys?.[preset.id] ?? "",
                                 }))
                                 setProviderOpen(false)
                               }}
@@ -336,14 +345,13 @@ export function ProjectSidebar({
                   <div className="flex items-center gap-2 rounded-md border border-white/10 bg-white/[0.04] px-2.5 py-2 focus-within:border-primary/50 transition-colors">
                     <Key className="h-3 w-3 shrink-0 text-muted-foreground" />
                     <input
-                      type={showKey ? "text" : "password"}
+                      type="text"
                       value={draft.apiKey}
                       onChange={e => setDraft(d => ({ ...d, apiKey: e.target.value }))}
                       placeholder={currentPreset.keyPlaceholder || "Your API key"}
                       className="flex-1 bg-transparent font-mono text-[11px] text-foreground outline-none placeholder:text-muted-foreground/40"
-                      autoComplete="new-password"
-                      data-lpignore="true"
-                      data-1p-ignore="true"
+                      style={showKey ? undefined : { WebkitTextSecurity: "disc" } as never}
+                      autoComplete="off"
                       spellCheck={false}
                     />
                     <button onClick={() => setShowKey(v => !v)} className="text-muted-foreground hover:text-foreground transition-colors">

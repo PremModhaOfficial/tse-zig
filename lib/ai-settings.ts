@@ -122,10 +122,8 @@ export const OPENAI_MODELS: AIModel[] = [
 ]
 
 export function getModelsForProvider(provider: AIProvider): AIModel[] {
-  switch (provider) {
-    case "openrouter": return AI_MODELS
-    case "openai":     return OPENAI_MODELS
-  }
+  if (provider === "openai") return OPENAI_MODELS
+  return AI_MODELS // openrouter + safe fallback for any stale localStorage value
 }
 
 export const DEFAULT_MODEL_ID = "openai/gpt-4o"
@@ -137,6 +135,8 @@ export interface AISettings {
   webGrounding: boolean
   provider: AIProvider
   customBaseUrl: string
+  /** Per-provider key store so switching back to a provider restores its key */
+  providerKeys?: Partial<Record<AIProvider, string>>
 }
 
 const STORAGE_KEY = "nodepad-ai-settings"
