@@ -1,0 +1,12 @@
+{
+  "last_session_id": "779ce215-2c59-47a4-aa54-47e328aa30ad",
+  "last_event_key": "779ce215-2c59-47a4-aa54-47e328aa30ad:transcript:f272db7a1be9ce02bb89f6584fb2b20376005d5994a009bcfa81673699bb4e82",
+  "last_prompted_session_id": "779ce215-2c59-47a4-aa54-47e328aa30ad",
+  "last_reason": "prompt-cooldown-active",
+  "last_prompted_at": "2026-04-08T12:35:23.791Z",
+  "last_user_message_count": 39,
+  "last_actionable_message_count": 7,
+  "deep_interview_lock_active": false,
+  "deep_interview_lock_source": "/home/prem-modha/projects/opens/nodepad/.omg/state/deep-interview.json",
+  "updated_at": "2026-04-08T13:13:58.841Z"
+}

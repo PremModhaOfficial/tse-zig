@@ -1,0 +1,12 @@
+{
+  "turn_count": 37,
+  "last_session_id": "779ce215-2c59-47a4-aa54-47e328aa30ad",
+  "last_event_key": "779ce215-2c59-47a4-aa54-47e328aa30ad:transcript:f272db7a1be9ce02bb89f6584fb2b20376005d5994a009bcfa81673699bb4e82",
+  "last_transcript_hash": "f272db7a1be9ce02bb89f6584fb2b20376005d5994a009bcfa81673699bb4e82",
+  "last_model": "gemini-3.1-flash-lite-preview",
+  "last_turn_total_tokens": 59809,
+  "last_session_total_tokens": 2980735,
+  "cwd_mode": "parent-leaf",
+  "last_cwd_label": "opens/nodepad",
+  "updated_at": "2026-04-08T13:13:58.855Z"
+}
